@@ -1,0 +1,12 @@
+# Carpetas de compilación (para todos los microservicios)
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.iml
+
+# Archivos del sistema
+.DS_Store
