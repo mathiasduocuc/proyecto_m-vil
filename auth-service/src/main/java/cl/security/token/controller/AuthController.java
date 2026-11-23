@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,27 +20,59 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         try {
-            // 1. Spring Security verifica si el correo y contraseña son válidos
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.correo(), request.contrasena())
             );
 
-            // 2. Si es válido, buscamos al usuario en la BD
             Usuario usuario = usuarioRepository.findByCorreo(request.correo()).orElseThrow();
 
-            // 3. Generamos el Token JWT
             String jwtToken = jwtService.generateToken(usuario, usuario.getRol());
 
-            // 4. Devolvemos la respuesta JSON a Android
             return ResponseEntity.ok(new AuthResponse(jwtToken, usuario.getRol(), usuario.getCorreo()));
 
         } catch (Exception e) {
-            // Si las credenciales son incorrectas, devolvemos un error 401
             return ResponseEntity.status(401).body("Credenciales incorrectas");
         }
+    }
+
+
+    public record RegisterRequest(String correo, String contrasena, String rol) {}
+    public record RecoverRequest(String correo, String nuevaContrasena) {}
+ 
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        if (usuarioRepository.findByCorreo(request.correo()).isPresent()) {
+            return ResponseEntity.badRequest().body("El correo ya está registrado");
+        }
+
+        Usuario nuevoUsuario = Usuario.builder()
+                .correo(request.correo())
+                .contrasena(passwordEncoder.encode(request.contrasena()))
+                .rol(request.rol() != null ? request.rol() : "OBSERVADOR")
+                .build();
+
+        usuarioRepository.save(nuevoUsuario);
+
+        return ResponseEntity.ok("Usuario creado exitosamente");
+    }
+
+    @PutMapping("/recover")
+    public ResponseEntity<?> recoverPassword(@RequestBody RecoverRequest request) {
+        Usuario usuario = usuarioRepository.findByCorreo(request.correo())
+                .orElse(null);
+
+        if (usuario == null) {
+            return ResponseEntity.badRequest().body("Correo no encontrado");
+        }
+
+        usuario.setContrasena(passwordEncoder.encode(request.nuevaContrasena()));
+        usuarioRepository.save(usuario);
+
+        return ResponseEntity.ok("Contraseña actualizada correctamente");
     }
 }
