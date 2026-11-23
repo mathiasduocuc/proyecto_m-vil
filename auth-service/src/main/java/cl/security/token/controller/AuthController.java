@@ -75,4 +75,18 @@ public class AuthController {
 
         return ResponseEntity.ok("Contraseña actualizada correctamente");
     }
+    @DeleteMapping("/delete/{correo}")
+    public ResponseEntity<?> deleteUser(@PathVariable String correo) {
+        // Buscamos al usuario en la base de datos
+        Usuario usuario = usuarioRepository.findByCorreo(correo).orElse(null);
+
+        if (usuario == null) {
+            return ResponseEntity.badRequest().body("Usuario no encontrado");
+        }
+
+        // Lo eliminamos de MySQL
+        usuarioRepository.delete(usuario);
+
+        return ResponseEntity.ok("Usuario eliminado correctamente");
+    }
 }
