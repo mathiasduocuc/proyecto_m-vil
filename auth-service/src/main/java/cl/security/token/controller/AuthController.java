@@ -22,6 +22,12 @@ public class AuthController {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
+        @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers() {
+        // Retorna todos los usuarios de la base de datos
+        return ResponseEntity.ok(usuarioRepository.findAll());
+    }
+    
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         try {
