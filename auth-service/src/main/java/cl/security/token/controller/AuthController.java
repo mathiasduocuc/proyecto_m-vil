@@ -12,6 +12,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -63,7 +65,7 @@ public class AuthController {
 
         usuarioRepository.save(nuevoUsuario);
 
-        return ResponseEntity.ok("Usuario creado exitosamente");
+        return ResponseEntity.ok(Map.of("mensaje", "Usuario creado exitosamente")); // <-- JSON
     }
 
     @PutMapping("/recover")
@@ -78,20 +80,17 @@ public class AuthController {
         usuario.setContrasena(passwordEncoder.encode(request.nuevaContrasena()));
         usuarioRepository.save(usuario);
 
-        return ResponseEntity.ok("Contraseña actualizada correctamente");
+        return ResponseEntity.ok(Map.of("mensaje", "Contraseña actualizada correctamente")); // <-- JSON
     }
     @DeleteMapping("/delete/{correo}")
     public ResponseEntity<?> deleteUser(@PathVariable String correo) {
-        // Buscamos al usuario en la base de datos
         Usuario usuario = usuarioRepository.findByCorreo(correo).orElse(null);
 
         if (usuario == null) {
             return ResponseEntity.badRequest().body("Usuario no encontrado");
         }
 
-        // Lo eliminamos de MySQL
         usuarioRepository.delete(usuario);
-
-        return ResponseEntity.ok("Usuario eliminado correctamente");
+        return ResponseEntity.ok(Map.of("mensaje", "Usuario eliminado correctamente")); // <-- JSON
     }
 }
