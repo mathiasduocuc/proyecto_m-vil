@@ -1,0 +1,34 @@
+services:
+  mysql-registros:
+    image: mysql:8.4
+    container_name: mysql-registros
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: registros_db
+      MYSQL_USER: registros
+      MYSQL_PASSWORD: registros123
+    volumes:
+      - registros_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  registros-service:
+    build: .
+    container_name: registros-service
+    ports:
+      - "127.0.0.1:8085:8085"
+    environment:
+      DB_URL: jdbc:mysql://mysql-registros:3306/registros_db
+      DB_USER: registros
+      DB_PASSWORD: registros123
+      JWT_SECRET: ${JWT_SECRET:?Falta configurar JWT_SECRET}
+      EUREKA_URL: http://host.docker.internal:8761/eureka/
+    depends_on:
+      mysql-registros:
+        condition: service_healthy
+
+volumes:
+  registros_data:

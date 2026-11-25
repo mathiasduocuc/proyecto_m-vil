@@ -1,0 +1,45 @@
+services:
+
+  mysql-usuarios:
+    image: mysql:8.4
+    container_name: mysql-usuarios
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: usuarios_db
+      MYSQL_USER: rinconsur
+      MYSQL_PASSWORD: rinconsur123
+
+    ports:
+      - "127.0.0.1:3307:3306"
+
+    volumes:
+      - usuarios_data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  usuarios-service:
+    build: .
+    container_name: usuarios-service
+
+    ports:
+      - "127.0.0.1:8081:8081"
+
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Falta configurar JWT_SECRET}
+      EUREKA_URL: http://host.docker.internal:8761/eureka/
+      USUARIOS_HOST: host.docker.internal
+      DB_URL: jdbc:mysql://mysql-usuarios:3306/usuarios_db
+      DB_USER: rinconsur
+      DB_PASSWORD: rinconsur123
+
+    depends_on:
+      mysql-usuarios:
+        condition: service_healthy
+
+volumes:
+  usuarios_data:

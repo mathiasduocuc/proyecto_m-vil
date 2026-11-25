@@ -1,0 +1,14 @@
+services:
+  api-gateway:
+    build: .
+    container_name: api-gateway
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      EUREKA_URL: http://host.docker.internal:8761/eureka/
+      AUTH_URL: http://host.docker.internal:8082
+      REGISTROS_URL: http://host.docker.internal:8085
+      ESTADISTICAS_URL: http://host.docker.internal:8086
+      USUARIOS_URL: ${USUARIOS_URL:-http://host.docker.internal:8081}
+      JWT_SECRET: ${JWT_SECRET:?Falta configurar JWT_SECRET}
+      GATEWAY_HOST: host.docker.internal

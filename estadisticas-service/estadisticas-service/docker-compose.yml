@@ -1,0 +1,10 @@
+services:
+  estadisticas-service:
+    build: .
+    container_name: estadisticas-service
+    ports:
+      - "127.0.0.1:8086:8086"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Falta configurar JWT_SECRET}
+      REGISTROS_URL: http://host.docker.internal:8085
+      EUREKA_URL: http://host.docker.internal:8761/eureka/
